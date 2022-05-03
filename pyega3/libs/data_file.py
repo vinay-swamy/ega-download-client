@@ -1,4 +1,5 @@
 import concurrent.futures
+import json
 import logging
 import logging.handlers
 import os
@@ -118,9 +119,20 @@ class DataFile:
 
         with tqdm(total=int(file_size), unit='B', unit_scale=True) as pbar:
             params = [
-                (os.path.join(temporary_directory, self.id), chunk_start_pos,
-                 min(chunk_len, file_size - chunk_start_pos), options, pbar)
-                for chunk_start_pos in range(0, file_size, chunk_len)]
+                (os.path.join(temporary_directory, self.id),
+                 chunk_start_pos,
+                 min(chunk_len, file_size - chunk_start_pos),
+                 options,
+                 pbar) for chunk_start_pos in range(0, file_size, chunk_len)]
+
+            debug_params = [
+                [os.path.join(temporary_directory, self.id),
+                 chunk_start_pos,
+                 min(chunk_len, file_size - chunk_start_pos),
+                 options] for chunk_start_pos in range(0, file_size, chunk_len)]
+
+            with open('debug_params.json', 'w') as f:
+                json.dump(debug_params, f)
 
             for file in os.listdir(temporary_directory):
                 match = re.match(r"(.*)-from-(\d*)-len-(\d*).*", file)
@@ -132,6 +144,7 @@ class DataFile:
                     continue
 
                 if (int(file_from), int(file_length)) in [(param[1], param[2]) for param in params]:
+                    logging.warning(f'file_from: {file_from}, file_length: {file_length} in params')
                     continue
 
                 logging.warning(f'Deleting the leftover {file} temporary file because the MAX_SLICE_SIZE parameter ('
@@ -199,7 +212,8 @@ class DataFile:
         try:
             with self.data_client.get_stream(path,
                                              {
-                                                 'Range': f'bytes={start_pos + existing_size}-{start_pos + length - 1}'}) as r:
+                                                 'Range': f'bytes={start_pos + existing_size}-{start_pos + length - 1}'
+                                             }) as r:
                 with open(file_name, 'ba') as file_out:
                     for chunk in r.iter_content(DOWNLOAD_FILE_MEMORY_BUFFER_SIZE):
                         file_out.write(chunk)
