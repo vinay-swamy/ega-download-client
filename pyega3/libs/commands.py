@@ -8,6 +8,7 @@ from pyega3.libs import data_file
 from pyega3.libs.data_set import DataSet
 from pyega3.libs.pretty_printing import pretty_print_authorized_datasets, pretty_print_files_in_dataset
 from pyega3.libs.utils import verify_output_dir
+import pandas as pd
 
 
 def execute_subcommand(args, data_client):
@@ -64,7 +65,8 @@ def list_files_in_dataset(args, data_client):
         sys.exit()
     dataset = DataSet(data_client, args.identifier)
     files = dataset.list_files()
-    pretty_print_files_in_dataset(files, args.json)
+    #pretty_print_files_in_dataset(files, args.json)
+    pd.DataFrame(files).to_csv(f"{args.identifier}_metadata.csv")
 
 
 def list_datasets(args, data_client):

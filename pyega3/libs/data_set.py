@@ -57,12 +57,12 @@ class DataSet:
             file_name = res['fileName'] if 'fileName' in res else None
             size = res['fileSize'] if 'fileSize' in res else None
             unencrypted_checksum = res['unencryptedChecksum'] if 'unencryptedChecksum' in res else None
-            return data_file.DataFile(self.data_client, res['fileId'],
-                                      display_file_name=display_file_name,
-                                      file_name=file_name,
-                                      size=size,
-                                      unencrypted_checksum=unencrypted_checksum,
-                                      status=res['fileStatus'])
+            return {"fileid" : res['fileId'],
+                    "display_file_name" : display_file_name,
+                    "file_name":file_name,
+                    "size":size,
+                    "unencrypted_checksum" : unencrypted_checksum,
+                    "status":res['fileStatus']}
 
         return [make_data_file(res) for res in reply]
 
